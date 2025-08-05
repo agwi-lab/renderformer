@@ -3,7 +3,8 @@ import h5py
 import numpy as np
 import trimesh
 
-from scene_config import SceneConfig
+from scene_processor.scene_config import SceneConfig  # Исправляем импорт
+
 
 
 def look_at_to_c2w(camera_position, target_position=[0.0, 0.0, 0.0], up_dir=[0.0, 0.0, 1.0]) -> np.ndarray:
