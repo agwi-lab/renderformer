@@ -40,7 +40,7 @@ def main():
     parser.add_argument("--tone_mapper", type=str, choices=['none', 'agx', 'filmic', 'pbr_neutral'], default='none', help="Tone mapper for inference")
     args = parser.parse_args()
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu')
+    device = torch.device('cuda:1' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu')
 
     pipeline = RenderFormerRenderingPipeline.from_pretrained(args.model_id)
 

@@ -11,3 +11,6 @@ natsort
 imageio[ffmpeg]
 simple-ocio
 git+https://github.com/iamNCJ/renderformer-liger-kernel.git
+torch --index-url https://download.pytorch.org/whl/cu121
+torchvision --index-url https://download.pytorch.org/whl/cu121
+torchaudio --index-url https://download.pytorch.org/whl/cu121

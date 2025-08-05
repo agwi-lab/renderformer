@@ -1,0 +1,278 @@
+{
+    "scene_name": "cornell_box_tall-box",
+    "version": "1.0",
+    "objects": {
+        "background_0": {
+            "mesh_path": "/home/devel/.draft/renderformer/examples/templates/backgrounds/plane.obj",
+            "transform": {
+                "translation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "scale": [
+                    0.5,
+                    0.5,
+                    0.5
+                ],
+                "normalize": false
+            },
+            "material": {
+                "diffuse": [
+                    0.4,
+                    0.4,
+                    0.4
+                ],
+                "specular": [
+                    0.01,
+                    0.01,
+                    0.01
+                ],
+                "random_diffuse_max": 0.4,
+                "roughness": 0.99,
+                "emissive": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "smooth_shading": true,
+                "rand_tri_diffuse_seed": null
+            }
+        },
+        "background_1": {
+            "mesh_path": "/home/devel/.draft/renderformer/examples/templates/backgrounds/wall0.obj",
+            "transform": {
+                "translation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "scale": [
+                    0.5,
+                    0.5,
+                    0.5
+                ],
+                "normalize": false
+            },
+            "material": {
+                "diffuse": [
+                    0.4,
+                    0.4,
+                    0.4
+                ],
+                "specular": [
+                    0.55,
+                    0.55,
+                    0.55
+                ],
+                "random_diffuse_max": 0.4,
+                "roughness": 0.1,
+                "emissive": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "smooth_shading": true,
+                "rand_tri_diffuse_seed": null
+            }
+        },
+        "background_2": {
+            "mesh_path": "/home/devel/.draft/renderformer/examples/templates/backgrounds/wall1.obj",
+            "transform": {
+                "translation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "scale": [
+                    0.5,
+                    0.5,
+                    0.5
+                ],
+                "normalize": false
+            },
+            "material": {
+                "diffuse": [
+                    0.33212427543453354,
+                    0.6225815522413306,
+                    0.2160691338705425
+                ],
+                "specular": [
+                    0.01,
+                    0.01,
+                    0.01
+                ],
+                "random_diffuse_max": 0.5,
+                "roughness": 0.99,
+                "emissive": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "smooth_shading": true,
+                "rand_tri_diffuse_seed": null
+            }
+        },
+        "background_3": {
+            "mesh_path": "/home/devel/.draft/renderformer/examples/templates/backgrounds/wall2.obj",
+            "transform": {
+                "translation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "scale": [
+                    0.5,
+                    0.5,
+                    0.5
+                ],
+                "normalize": false
+            },
+            "material": {
+                "diffuse": [
+                    0.526475737098663,
+                    0.09392782594971205,
+                    0.024535096407965418
+                ],
+                "specular": [
+                    0.01,
+                    0.01,
+                    0.01
+                ],
+                "random_diffuse_max": 0.5,
+                "roughness": 0.99,
+                "emissive": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "smooth_shading": false,
+                "rand_tri_diffuse_seed": null
+            }
+        },
+        "tall-box": {
+            "mesh_path": "/home/devel/.draft/renderformer/examples/objects/cbox/tall-box.obj",
+            "transform": {
+                "translation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "scale": [
+                    0.9998673534648106,
+                    0.9998673534648106,
+                    0.9998673534648106
+                ],
+                "normalize": true
+            },
+            "material": {
+                "diffuse": [
+                    0.28740983884741345,
+                    0.15742498085654663,
+                    0.08787357904013827
+                ],
+                "specular": [
+                    0.48704378295547235,
+                    0.6580858181571224,
+                    0.7170473601549957
+                ],
+                "random_diffuse_max": 0.1493821527519231,
+                "roughness": 0.019762456924094285,
+                "emissive": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "smooth_shading": false,
+                "rand_tri_diffuse_seed": null
+            }
+        },
+        "light_0": {
+            "mesh_path": "/home/devel/.draft/renderformer/examples/templates/lighting/tri.obj",
+            "transform": {
+                "translation": [
+                    0.0,
+                    0.0,
+                    2.1
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "scale": [
+                    2.580375477417634,
+                    2.580375477417634,
+                    2.580375477417634
+                ],
+                "normalize": false
+            },
+            "material": {
+                "diffuse": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "specular": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "random_diffuse_max": 0.0,
+                "roughness": 1.0,
+                "emissive": [
+                    6075.849979589595,
+                    6075.849979589595,
+                    6075.849979589595
+                ],
+                "smooth_shading": false,
+                "rand_tri_diffuse_seed": null
+            }
+        }
+    },
+    "cameras": [
+        {
+            "position": [
+                -0.2845312211351241,
+                -2.06782353567142,
+                0.37002166135089465
+            ],
+            "look_at": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "up": [
+                0.0,
+                0.0,
+                1.0
+            ],
+            "fov": 34.41453816848876
+        }
+    ]
+}
