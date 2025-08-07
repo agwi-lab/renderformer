@@ -3,7 +3,7 @@ import h5py
 import numpy as np
 import trimesh
 
-from scene_processor.scene_config import SceneConfig  # Исправляем импорт
+from scene_processor.scene_config import SceneConfig
 
 
 

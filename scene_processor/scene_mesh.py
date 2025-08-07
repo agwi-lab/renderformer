@@ -5,8 +5,8 @@ import trimesh
 import trimesh.visual
 from typing import Dict
 import random
-from scene_processor.scene_config import SceneConfig
-from scene_processor.remesh import remesh
+from .scene_config import SceneConfig
+from .remesh import remesh
 
 
 def normalize_to_unit_sphere(mesh: trimesh.Trimesh) -> trimesh.Trimesh:
