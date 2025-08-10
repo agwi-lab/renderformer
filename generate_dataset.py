@@ -57,6 +57,7 @@ class SceneGenerator:
     ) -> Dict:
         """Генерирует сцену с заданным объектом"""
 
+
         scene = {
             "scene_name": "cornell box",
             "version": "1.0",
@@ -174,6 +175,7 @@ class SceneGenerator:
                         "specular": [
                             0.01,
                             0.01,
+
                             0.01
                         ],
                         "random_diffuse_max": 0.5,
@@ -283,6 +285,7 @@ class SceneGenerator:
                             0.0,
                             0.0,
                             0.0
+
                         ],
                         "scale": [
                             2.5,
@@ -395,6 +398,7 @@ class SceneGenerator:
 
 def main():
     generator = SceneGenerator()
+
 
     # Генерируем случайные сцены
     for i in range(CONFIG["NUM_RANDOM_SCENES"]):
