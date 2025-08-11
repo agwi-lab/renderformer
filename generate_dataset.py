@@ -21,7 +21,7 @@ CONFIG = {
     "OBJ_PATH": "/home/devel/.draft/renderformer/examples/objects",
     "TMP_PATH": "/home/devel/.draft/renderformer/examples/templates",
     "BASE_DIR": "examples",
-    "NUM_RANDOM_SCENES": 10,
+    "NUM_RANDOM_SCENES": 1,
 }
 
 class SceneGenerator:
