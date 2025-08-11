@@ -44,7 +44,7 @@ class SceneGenerator:
         
         # Собираем все доступные объекты
         self.available_objects = self._collect_objects()
-        
+
     def _collect_objects(self) -> List[tuple]:
         """Собирает все доступные .obj файлы из директории objects"""
         objects = []
@@ -384,7 +384,8 @@ class SceneGenerator:
             # render_scene_from_json(json_path, self.gt_path)
             # Рендерим GT используя внешний скрипт
             render_script = Path(__file__).parent / "scene_processor" / "render_scene.py"
-            cmd = f"blenderproc run {render_script} {json_path} {self.gt_path}"
+            base_dir = CONFIG["BASE_DIR"]
+            cmd = f"blenderproc run {render_script} {json_path} {base_dir} {self.gt_path}"
             result = os.system(cmd)
 
             if result != 0:

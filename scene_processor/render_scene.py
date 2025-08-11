@@ -29,7 +29,7 @@ def save_image_array(image_array: np.ndarray, output_path: str):
     img.save(output_path, quality=95, optimize=True)
     print(f"Image successfully saved to {output_path}")
 
-def render_scene_from_json(json_path, output_path):
+def render_scene_from_json(json_path: str, base_path: str, output_path: str):
     """Render a scene from JSON description to PNG"""
     # Load JSON configuration
     with open(json_path, 'r') as f:
@@ -58,8 +58,8 @@ def render_scene_from_json(json_path, output_path):
     for obj_name, obj_config in scene_config["objects"].items():
         try:
             # Construct full path to mesh
-            mesh_path = os.path.join(os.path.dirname(json_path), obj_config["mesh_path"])
-            
+            mesh_path = os.path.join(os.path.dirname(base_path), obj_config["mesh_path"])
+
             # Load object
             objs = bproc.loader.load_obj(mesh_path)
             if not objs:
@@ -240,10 +240,11 @@ def render_scene_from_json(json_path, output_path):
 def main():
     parser = argparse.ArgumentParser(description="Render a scene from JSON using BlenderProc")
     parser.add_argument("json_path", help="Path to the scene JSON file")
+    parser.add_argument("base_path", help="Path to the scene JSON file")
     parser.add_argument("output_dir", help="Directory to save rendered PNG")
     args = parser.parse_args()
 
-    render_scene_from_json(args.json_path, args.output_dir)
+    render_scene_from_json(args.json_path, args.base_path, args.output_dir)
 
 if __name__ == "__main__":
     main()
