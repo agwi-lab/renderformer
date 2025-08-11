@@ -29,7 +29,7 @@ def save_image_array(image_array: np.ndarray, output_path: str):
     img.save(output_path, quality=95, optimize=True)
     print(f"Image successfully saved to {output_path}")
 
-def render_scene_from_json(json_path: str, base_path: str, output_path: str):
+def render_scene_from_json(json_path: str, base_path: str, output_path: str, image_name: str):
     """Render a scene from JSON description to PNG"""
     # Load JSON configuration
     with open(json_path, 'r') as f:
@@ -232,7 +232,7 @@ def render_scene_from_json(json_path: str, base_path: str, output_path: str):
     data = bproc.renderer.render()
 
     # Save PNG
-    output_png = os.path.join(output_path, "render.png")
+    output_png = os.path.join(output_path, image_name)
     img_data = data['colors'][0]
     save_image_array(img_data, output_png)
     print(f"Rendered image saved to: {output_png}")
@@ -242,9 +242,10 @@ def main():
     parser.add_argument("json_path", help="Path to the scene JSON file")
     parser.add_argument("base_path", help="Path to the scene JSON file")
     parser.add_argument("output_dir", help="Directory to save rendered PNG")
+    parser.add_argument("image_name", help="Name of the rendered image")
     args = parser.parse_args()
 
-    render_scene_from_json(args.json_path, args.base_path, args.output_dir)
+    render_scene_from_json(args.json_path, args.base_path, args.output_dir, args.image_name)
 
 if __name__ == "__main__":
     main()

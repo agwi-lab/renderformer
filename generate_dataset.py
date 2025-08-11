@@ -24,7 +24,7 @@ CONFIG = {
     "OBJ_PATH": "/home/devel/.draft/renderformer/examples/objects",
     "TMP_PATH": "/home/devel/.draft/renderformer/examples/templates",
     "BASE_DIR": "examples",
-    "NUM_RANDOM_SCENES": 1,
+    "NUM_RANDOM_SCENES": 20,
 }
 
 class SceneGenerator:
@@ -385,7 +385,7 @@ class SceneGenerator:
             # Рендерим GT используя внешний скрипт
             render_script = Path(__file__).parent / "scene_processor" / "render_scene.py"
             base_dir = CONFIG["BASE_DIR"]
-            cmd = f"blenderproc run {render_script} {json_path} {base_dir} {self.gt_path}"
+            cmd = f"blenderproc run {render_script} {json_path} {base_dir} {self.gt_path} {scene_name}.png"
             result = os.system(cmd)
 
             if result != 0:
