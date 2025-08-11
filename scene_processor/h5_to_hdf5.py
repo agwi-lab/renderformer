@@ -43,7 +43,7 @@ def convert_h5_to_hdf5(input_path, output_path=None):
     # Verify input file exists
     if not os.path.exists(input_path):
         raise FileNotFoundError(f"Input file not found: {input_path}")
-    
+
     print(f"Converting {input_path} to {output_path}")
     
     # Open input and create output files

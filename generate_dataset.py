@@ -12,11 +12,14 @@ from sympy.parsing.sympy_parser import null
 from scene_processor.to_h5 import save_to_h5
 from scene_processor.scene_mesh import generate_scene_mesh
 from scene_processor.scene_config import SceneConfig
+# from scene_processor.render_scene import render_scene_from_json
+
 
 CONFIG = {
     "DATA_PATH": "/home/devel/.draft/renderformer/datasets",
     "JSON_PATH": "/home/devel/.draft/renderformer/datasets/json",
     "H5_PATH": "/home/devel/.draft/renderformer/datasets/h5",
+    "GT_PATH": "/home/devel/.draft/renderformer/datasets/gt",
     "TEMP_MESH_PATH": "/home/devel/.draft/renderformer/datasets/temp",
     "OBJ_PATH": "/home/devel/.draft/renderformer/examples/objects",
     "TMP_PATH": "/home/devel/.draft/renderformer/examples/templates",
@@ -31,11 +34,13 @@ class SceneGenerator:
         self.json_path = Path(CONFIG["JSON_PATH"])
         self.h5_path = Path(CONFIG["H5_PATH"])
         self.temp_mesh_path = Path(CONFIG["TEMP_MESH_PATH"])
-        
+        self.gt_path = Path(CONFIG["GT_PATH"])
+
         # Создаем необходимые директории
         self.json_path.mkdir(parents=True, exist_ok=True)
         self.h5_path.mkdir(parents=True, exist_ok=True)
         self.temp_mesh_path.mkdir(parents=True, exist_ok=True)
+        self.gt_path.mkdir(parents=True, exist_ok=True)
         
         # Собираем все доступные объекты
         self.available_objects = self._collect_objects()
@@ -375,7 +380,16 @@ class SceneGenerator:
             # Сохраняем H5
             h5_path = self.h5_path / f"{scene_name}.h5"
             save_to_h5(scene_config, str(temp_mesh_file), str(h5_path))
-            
+
+            # render_scene_from_json(json_path, self.gt_path)
+            # Рендерим GT используя внешний скрипт
+            render_script = Path(__file__).parent / "scene_processor" / "render_scene.py"
+            cmd = f"blenderproc run {render_script} {json_path} {self.gt_path}"
+            result = os.system(cmd)
+
+            if result != 0:
+                print(f"Warning: Rendering failed for scene {scene_name}")
+
             # Удаляем временные файлы
             if temp_mesh_file.exists():
                 temp_mesh_file.unlink()
@@ -387,6 +401,7 @@ class SceneGenerator:
             print(f"Generated scene {scene_name}:")
             print(f"  - JSON: {json_path}")
             print(f"  - H5: {h5_path}")
+            print(f"  - GT: {self.gt_path}")
             
         except Exception as e:
             print(f"Error converting scene {scene_name} to H5: {str(e)}")

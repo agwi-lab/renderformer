@@ -103,14 +103,14 @@ def render_scene_from_json(json_path, output_path):
                 except:
                     print("Предупреждение: Не удалось установить значение Specular/IOR")
             mat.set_principled_shader_value("Roughness", roughness)
-            
+
             # Обработка эмиссивных материалов (для источников света)
             emissive = mat_config.get("emissive", [0, 0, 0])
             if "light" in obj_name.lower() or np.any(np.array(emissive) > 0):
                 # Добавить альфа канал к эмиссивному цвету
                 if len(emissive) == 3:
                     emissive = emissive + [1.0]
-                
+
                 # В Blender 4.0+ эмиссионные свойства могут называться по-другому
                 try:
                     mat.set_principled_shader_value("Emission Color", emissive[:3])
