@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 import glob
+import shutil
 from dacite import from_dict, Config
 import sys
 
@@ -24,7 +25,7 @@ CONFIG = {
     "OBJ_PATH": "/home/devel/.draft/renderformer/examples/objects",
     "TMP_PATH": "/home/devel/.draft/renderformer/examples/templates",
     "BASE_DIR": "examples",
-    "NUM_RANDOM_SCENES": 20,
+    "NUM_RANDOM_SCENES": 2,
 }
 
 class SceneGenerator:
@@ -343,7 +344,7 @@ class SceneGenerator:
                 }
             ]
         }
-        
+
         return scene
 
     def save_scene(self, scene: Dict, scene_name: str):
@@ -391,13 +392,18 @@ class SceneGenerator:
             if result != 0:
                 print(f"Warning: Rendering failed for scene {scene_name}")
 
-            # Удаляем временные файлы
-            if temp_mesh_file.exists():
-                temp_mesh_file.unlink()
-            
-            # Удаляем split-файлы
-            for split_file in split_dir.glob("*.obj"):
-                split_file.unlink()
+            # Удаляем временные файлы и директорию целиком
+            try:
+                if temp_mesh_file.exists():
+                    temp_mesh_file.unlink()
+            except Exception as cleanup_err:
+                print(f"Warning: failed to delete temp mesh file {temp_mesh_file}: {cleanup_err}")
+
+            try:
+                if self.temp_mesh_path.exists():
+                    shutil.rmtree(self.temp_mesh_path, ignore_errors=True)
+            except Exception as cleanup_err:
+                print(f"Warning: failed to remove temp directory {self.temp_mesh_path}: {cleanup_err}")
                 
             print(f"Generated scene {scene_name}:")
             print(f"  - JSON: {json_path}")
@@ -415,7 +421,6 @@ class SceneGenerator:
 def main():
     generator = SceneGenerator()
 
-
     # Генерируем случайные сцены
     for i in range(CONFIG["NUM_RANDOM_SCENES"]):
         obj_name, obj_path = random.choice(generator.available_objects)
@@ -426,6 +431,7 @@ def main():
             object_path=obj_path
         )
         generator.save_scene(scene, f"random_scene_{i}_{obj_name}")
+
 
 if __name__ == "__main__":
     main()
