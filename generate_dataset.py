@@ -2,19 +2,9 @@ import json
 import random
 import os
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, List
 import glob
-import shutil
-from dacite import from_dict, Config
-import sys
-
-from sympy.parsing.sympy_parser import null
-
-from scene_processor.to_h5 import save_to_h5
-from scene_processor.scene_mesh import generate_scene_mesh
-from scene_processor.scene_config import SceneConfig
-# from scene_processor.render_scene import render_scene_from_json
-
+from scene_processor.json_h5_convertor import save_dict_to_h5
 
 CONFIG = {
     "DATA_PATH": "/home/devel/.draft/renderformer/datasets",
@@ -23,24 +13,21 @@ CONFIG = {
     "GT_PATH": "/home/devel/.draft/renderformer/datasets/gt",
     "TEMP_MESH_PATH": "/home/devel/.draft/renderformer/datasets/temp",
     "OBJ_PATH": "/home/devel/.draft/renderformer/examples/objects",
-    "TMP_PATH": "/home/devel/.draft/renderformer/examples/templates",
     "BASE_DIR": "/home/devel/.draft/renderformer/examples",
-    "NUM_RANDOM_SCENES": 2,
+    "SCRIPT_NAME": "render_scene.py",
+    "NUM_RANDOM_SCENES": 30,
 }
 
 class SceneGenerator:
     def __init__(self):
-        self.templates_path = Path(CONFIG["TMP_PATH"])
         self.objects_path = Path(CONFIG["OBJ_PATH"])
         self.json_path = Path(CONFIG["JSON_PATH"])
         self.h5_path = Path(CONFIG["H5_PATH"])
-        self.temp_mesh_path = Path(CONFIG["TEMP_MESH_PATH"])
         self.gt_path = Path(CONFIG["GT_PATH"])
 
         # Создаем необходимые директории
         self.json_path.mkdir(parents=True, exist_ok=True)
         self.h5_path.mkdir(parents=True, exist_ok=True)
-        self.temp_mesh_path.mkdir(parents=True, exist_ok=True)
         self.gt_path.mkdir(parents=True, exist_ok=True)
         
         # Собираем все доступные объекты
@@ -353,61 +340,24 @@ class SceneGenerator:
         json_path = self.json_path / f"{scene_name}.json"
         with open(json_path, 'w') as f:
             json.dump(scene, f, indent=4)
-            
-        # Создаем директорию для split-файлов
-        split_dir = self.temp_mesh_path / "split"
-        split_dir.mkdir(parents=True, exist_ok=True)
-        
+
         try:
-            # Создаем конфиг сцены
-            scene_config = from_dict(
-                data_class=SceneConfig, 
-                data=scene, 
-                config=Config(check_types=True, strict=True)
-            )
-            
-            # Генерируем временный меш
-            # temp_mesh_file = self.temp_mesh_path / f"{scene_name}.obj"
-            
-            # Генерируем меш сцены (это создаст split-файлы)
-            # Используем корневую директорию проекта как base_dir
-            # project_root = Path(__file__).parent
-            # generate_scene_mesh(
-            #     scene_config, 
-            #     str(temp_mesh_file),
-            #     str(project_root)
-            # )
-            
             # Сохраняем H5
-            # h5_path = self.h5_path / f"{scene_name}.h5"
-            # save_to_h5(scene_config, str(temp_mesh_file), str(h5_path))
+            h5_path = self.h5_path / f"{scene_name}.h5"
+            save_dict_to_h5(scene, h5_path)
 
-            # render_scene_from_json(json_path, self.gt_path)
             # Рендерим GT используя внешний скрипт
-            # render_script = Path(__file__).parent / "scene_processor" / "render_scene.py"
-            # base_dir = CONFIG["BASE_DIR"]
-            # cmd = f"blenderproc run {render_script} {json_path} {base_dir} {self.gt_path} {scene_name}.png"
-            # result = os.system(cmd)
+            render_script = Path(__file__).parent / "scene_processor" / CONFIG["SCRIPT_NAME"]
+            cmd = f"blenderproc run {render_script} -j {json_path} -o {self.gt_path} -i {scene_name}.png"
+            print(f"cmd: {cmd}")
+            result = os.system(cmd)
 
-            # if result != 0:
-            #     print(f"Warning: Rendering failed for scene {scene_name}")
+            if result != 0:
+                print(f"Warning: Rendering failed for scene {scene_name}")
 
-            # # Удаляем временные файлы и директорию целиком
-            # try:
-            #     if temp_mesh_file.exists():
-            #         temp_mesh_file.unlink()
-            # except Exception as cleanup_err:
-            #     print(f"Warning: failed to delete temp mesh file {temp_mesh_file}: {cleanup_err}")
-
-            # try:
-            #     if self.temp_mesh_path.exists():
-            #         shutil.rmtree(self.temp_mesh_path, ignore_errors=True)
-            # except Exception as cleanup_err:
-            #     print(f"Warning: failed to remove temp directory {self.temp_mesh_path}: {cleanup_err}")
-                
             print(f"Generated scene {scene_name}:")
             print(f"  - JSON: {json_path}")
-            # print(f"  - H5: {h5_path}")
+            print(f"  - H5: {h5_path}")
             print(f"  - GT: {self.gt_path}")
             
         except Exception as e:
@@ -418,19 +368,22 @@ class SceneGenerator:
             print("Detailed error:")
             print(traceback.format_exc())
 
+    def generate_dataset(self):
+        for i in range(CONFIG["NUM_RANDOM_SCENES"]):
+            obj_name, obj_path = random.choice(self.available_objects)
+            print(obj_name, obj_path)
+            scene = self.generate_scene(
+                scene_name=f"random_scene_{i}_{obj_name}",
+                object_name=obj_name,
+                object_path=obj_path
+            )
+            self.save_scene(scene, f"random_scene_{i}_{obj_name}")
+
+
+
 def main():
     generator = SceneGenerator()
-
-    # Генерируем случайные сцены
-    for i in range(CONFIG["NUM_RANDOM_SCENES"]):
-        obj_name, obj_path = random.choice(generator.available_objects)
-        print(obj_name, obj_path)
-        scene = generator.generate_scene(
-            scene_name=f"random_scene_{i}_{obj_name}",
-            object_name=obj_name,
-            object_path=obj_path
-        )
-        generator.save_scene(scene, f"random_scene_{i}_{obj_name}")
+    generator.generate_dataset()
 
 
 if __name__ == "__main__":
