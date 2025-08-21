@@ -24,7 +24,7 @@ CONFIG = {
     "TEMP_MESH_PATH": "/home/devel/.draft/renderformer/datasets/temp",
     "OBJ_PATH": "/home/devel/.draft/renderformer/examples/objects",
     "TMP_PATH": "/home/devel/.draft/renderformer/examples/templates",
-    "BASE_DIR": "examples",
+    "BASE_DIR": "/home/devel/.draft/renderformer/examples",
     "NUM_RANDOM_SCENES": 2,
 }
 
@@ -367,47 +367,47 @@ class SceneGenerator:
             )
             
             # Генерируем временный меш
-            temp_mesh_file = self.temp_mesh_path / f"{scene_name}.obj"
+            # temp_mesh_file = self.temp_mesh_path / f"{scene_name}.obj"
             
             # Генерируем меш сцены (это создаст split-файлы)
             # Используем корневую директорию проекта как base_dir
-            project_root = Path(__file__).parent
-            generate_scene_mesh(
-                scene_config, 
-                str(temp_mesh_file),
-                str(project_root)
-            )
+            # project_root = Path(__file__).parent
+            # generate_scene_mesh(
+            #     scene_config, 
+            #     str(temp_mesh_file),
+            #     str(project_root)
+            # )
             
             # Сохраняем H5
-            h5_path = self.h5_path / f"{scene_name}.h5"
-            save_to_h5(scene_config, str(temp_mesh_file), str(h5_path))
+            # h5_path = self.h5_path / f"{scene_name}.h5"
+            # save_to_h5(scene_config, str(temp_mesh_file), str(h5_path))
 
             # render_scene_from_json(json_path, self.gt_path)
             # Рендерим GT используя внешний скрипт
-            render_script = Path(__file__).parent / "scene_processor" / "render_scene.py"
-            base_dir = CONFIG["BASE_DIR"]
-            cmd = f"blenderproc run {render_script} {json_path} {base_dir} {self.gt_path} {scene_name}.png"
-            result = os.system(cmd)
+            # render_script = Path(__file__).parent / "scene_processor" / "render_scene.py"
+            # base_dir = CONFIG["BASE_DIR"]
+            # cmd = f"blenderproc run {render_script} {json_path} {base_dir} {self.gt_path} {scene_name}.png"
+            # result = os.system(cmd)
 
-            if result != 0:
-                print(f"Warning: Rendering failed for scene {scene_name}")
+            # if result != 0:
+            #     print(f"Warning: Rendering failed for scene {scene_name}")
 
-            # Удаляем временные файлы и директорию целиком
-            try:
-                if temp_mesh_file.exists():
-                    temp_mesh_file.unlink()
-            except Exception as cleanup_err:
-                print(f"Warning: failed to delete temp mesh file {temp_mesh_file}: {cleanup_err}")
+            # # Удаляем временные файлы и директорию целиком
+            # try:
+            #     if temp_mesh_file.exists():
+            #         temp_mesh_file.unlink()
+            # except Exception as cleanup_err:
+            #     print(f"Warning: failed to delete temp mesh file {temp_mesh_file}: {cleanup_err}")
 
-            try:
-                if self.temp_mesh_path.exists():
-                    shutil.rmtree(self.temp_mesh_path, ignore_errors=True)
-            except Exception as cleanup_err:
-                print(f"Warning: failed to remove temp directory {self.temp_mesh_path}: {cleanup_err}")
+            # try:
+            #     if self.temp_mesh_path.exists():
+            #         shutil.rmtree(self.temp_mesh_path, ignore_errors=True)
+            # except Exception as cleanup_err:
+            #     print(f"Warning: failed to remove temp directory {self.temp_mesh_path}: {cleanup_err}")
                 
             print(f"Generated scene {scene_name}:")
             print(f"  - JSON: {json_path}")
-            print(f"  - H5: {h5_path}")
+            # print(f"  - H5: {h5_path}")
             print(f"  - GT: {self.gt_path}")
             
         except Exception as e:
