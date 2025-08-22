@@ -16,12 +16,12 @@ CONFIG = {
     "OBJ_PATH": "/home/devel/.draft/renderformer/examples/objects",
     "BASE_DIR": "/home/devel/.draft/renderformer/examples",
     "SCRIPT_NAME": "render_scene.py",
-    "NUM_RANDOM_SCENES": 30,
+    "NUM_RANDOM_SCENES": 5,
     "MAX_CONCURRENT_TASKS": 4,
 }
 
 class SceneGenerator:
-    def __init__(self):
+    def __init__(self, CONFIG: dict):
         self.objects_path = Path(CONFIG["OBJ_PATH"])
         self.json_path = Path(CONFIG["JSON_PATH"])
         self.h5_path = Path(CONFIG["H5_PATH"])
@@ -461,7 +461,7 @@ class SceneGenerator:
 
 
 async def main():
-    generator = SceneGenerator()
+    generator = SceneGenerator(CONFIG)
 
     # Asynchronous generation
     await generator.generate_dataset()
