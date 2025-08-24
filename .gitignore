@@ -163,6 +163,7 @@ cython_debug/
 .DS_Store
 
 checkpoints/
+runs/
 video-data/
 output/
 tmp/

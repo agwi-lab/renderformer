@@ -19,8 +19,8 @@ CONFIG = {
     "OBJ_PATH": "/home/devel/.draft/renderformer/examples/objects",
     "BASE_DIR": "/home/devel/.draft/renderformer/examples",
     "SCRIPT_NAME": "render_scene.py",
-    "NUM_RANDOM_SCENES": 25,
-    "MAX_CONCURRENT_TASKS": 10
+    "NUM_RANDOM_SCENES": 10,
+    "MAX_CONCURRENT_TASKS": 4,
 }
 
 class SceneGenerator:
