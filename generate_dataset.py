@@ -5,7 +5,10 @@ import asyncio
 from pathlib import Path
 from typing import Dict, List
 import glob
-from scene_processor.json_h5_convertor import save_dict_to_h5
+from scene_processor.h5_tools import save_dict_to_h5
+from scene_processor.h5_tools import save_dict_to_h5_rendformer_method
+from scene_processor.to_h5 import save_to_h5
+from scene_processor.scene_mesh import generate_scene_mesh
 
 CONFIG = {
     "DATA_PATH": "/home/devel/.draft/renderformer/datasets",
@@ -16,8 +19,8 @@ CONFIG = {
     "OBJ_PATH": "/home/devel/.draft/renderformer/examples/objects",
     "BASE_DIR": "/home/devel/.draft/renderformer/examples",
     "SCRIPT_NAME": "render_scene.py",
-    "NUM_RANDOM_SCENES": 5,
-    "MAX_CONCURRENT_TASKS": 4,
+    "NUM_RANDOM_SCENES": 25,
+    "MAX_CONCURRENT_TASKS": 10
 }
 
 class SceneGenerator:
@@ -346,7 +349,8 @@ class SceneGenerator:
         try:
             # Save H5
             h5_path = self.h5_path / f"{scene_name}.h5"
-            save_dict_to_h5(scene, h5_path)
+            # save_dict_to_h5(scene, h5_path)
+            save_dict_to_h5_rendformer_method(scene, h5_path)
 
             # Render GT using external script (asynchronously)
             render_script = Path(__file__).parent / "scene_processor" / CONFIG["SCRIPT_NAME"]
@@ -440,15 +444,16 @@ class SceneGenerator:
                 object_name=obj_name,
                 object_path=obj_path
             )
-            
+
             # Use synchronous call for saving
             json_path = self.json_path / f"random_scene_{i}_{obj_name}.json"
             with open(json_path, 'w') as f:
                 json.dump(scene, f, indent=4)
-            
+
             h5_path = self.h5_path / f"random_scene_{i}_{obj_name}.h5"
-            save_dict_to_h5(scene, h5_path)
-            
+            # save_dict_to_h5(scene, h5_path)
+            save_dict_to_h5_rendformer_method(scene, h5_path)
+
             # Synchronous rendering
             render_script = Path(__file__).parent / "scene_processor" / CONFIG["SCRIPT_NAME"]
             cmd = f"blenderproc run {render_script} -j {json_path} -o {self.gt_path} -i random_scene_{i}_{obj_name}.png"

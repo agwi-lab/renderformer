@@ -3,6 +3,12 @@ import h5py
 import numpy as np
 from pathlib import Path
 from typing import Dict, Any, Union
+from scene_processor.scene_config import SceneConfig
+from scene_processor.to_h5 import save_to_h5
+from dacite import from_dict, Config
+import os
+import tempfile
+from scene_processor.scene_mesh import generate_scene_mesh
 
 
 def save_dict_to_h5(data: Dict[str, Any], h5_path: str) -> None:
@@ -15,6 +21,31 @@ def save_dict_to_h5(data: Dict[str, Any], h5_path: str) -> None:
     """
     with h5py.File(h5_path, 'w') as f:
         _write_dict_to_group(f, data)
+
+def save_dict_to_h5_rendformer_method(data: Dict[str, Any], h5_path: str) -> None:
+    """
+    Сохраняет словарь в H5 файл используя методы из renderformer репозитория.
+
+    Args:
+        data: Словарь с данными для сохранения
+        h5_path: Путь к H5 файлу
+    """
+
+    # Конвертируем словарь в SceneConfig объект
+    scene_config = from_dict(
+        data_class=SceneConfig,
+        data=data,
+        config=Config(check_types=False, strict=False)
+    )
+
+    scene_config_dir = str()
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_mesh_path = os.path.join(temp_dir, "temp_mesh.obj")
+        print(f"Generating mesh in temporary path: {temp_mesh_path}")
+        generate_scene_mesh(scene_config, temp_mesh_path, scene_config_dir)
+        save_to_h5(scene_config, temp_mesh_path, h5_path)
+
 
 
 def _write_dict_to_group(group: h5py.Group, data: Dict[str, Any]) -> None:

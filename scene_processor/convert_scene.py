@@ -23,7 +23,7 @@ def main():
         config = json.load(f)
     
     scene_config = from_dict(data_class=SceneConfig, data=config, config=Config(check_types=True, strict=True))
-    
+
     scene_config_dir = os.path.dirname(args.scene_config_path)
     
     if args.output_h5_path is None:
