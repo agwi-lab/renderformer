@@ -1,0 +1,37 @@
+# Конфигурация обучения RenderFormer
+training:
+  num_epochs: 3
+  learning_rate: 5e-6
+  weight_decay: 1e-4
+  max_grad_norm: 1.0
+  batch_size: 1
+  use_mixed_precision: true
+  use_gradient_checkpointing: true
+
+data:
+  h5_dir: "/home/devel/.draft/renderformer/datasets/h5"
+  gt_dir: "/home/devel/.draft/renderformer/datasets/gt"
+  max_resolution: 256
+  train_val_split: 0.8
+  num_workers: 0
+  pin_memory: true
+
+model:
+  model_id: "microsoft/renderformer-v1.1-swin-large"
+  device: []
+
+output:
+  checkpoint_dir: "checkpoints"
+  log_dir: "runs/renderformer_training"
+  save_interval: 5
+
+memory:
+  clear_cache_every_batch: true
+  use_expandable_segments: true
+  autocast_dtype: "float16"
+
+distributed:
+  use_ddp: true
+  backend: "nccl"
+  find_unused_parameters: false
+  sync_batchnorm: true
