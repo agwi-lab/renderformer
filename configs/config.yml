@@ -18,7 +18,6 @@ data:
 
 model:
   model_id: "microsoft/renderformer-v1.1-swin-large"
-  device: []
 
 output:
   checkpoint_dir: "checkpoints"

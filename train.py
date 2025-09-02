@@ -25,7 +25,7 @@ from renderformer.utils.transform import trans_to_cam_coord
 
 def setup_distributed(config):
     """Настраивает распределенное обучение"""
-    if not config['distributed']['use_ddp'] or len(config['model']['device']) <= 1:
+    if not config['distributed']['use_ddp']:
         return None, None, False
     
     # Проверяем, установлены ли переменные окружения для DDP
@@ -38,9 +38,11 @@ def setup_distributed(config):
     world_size = int(os.environ['WORLD_SIZE'])
     local_rank = int(os.environ['LOCAL_RANK'])
     
-    # Устанавливаем необходимые переменные окружения
-    os.environ['MASTER_ADDR'] = 'localhost'
-    os.environ['MASTER_PORT'] = '12355'
+    # Устанавливаем необходимые переменные окружения если они не установлены
+    if 'MASTER_ADDR' not in os.environ:
+        os.environ['MASTER_ADDR'] = 'localhost'
+    if 'MASTER_PORT' not in os.environ:
+        os.environ['MASTER_PORT'] = '12355'
     
     # Инициализируем распределенное обучение
     dist.init_process_group(
@@ -51,10 +53,11 @@ def setup_distributed(config):
     )
     
     # Устанавливаем устройство для текущего процесса
-    device_id = config['model']['device'][local_rank] if local_rank < len(config['model']['device']) else 0
-    device = torch.device(f'cuda:{device_id}')
+    device = torch.device(f'cuda:{local_rank}')
     torch.cuda.set_device(device)
     
+    if rank == 0:
+        print(f"Инициализировано распределенное обучение: {world_size} процессов")
     print(f"Процесс {rank}/{world_size} запущен на устройстве {device}")
     
     return device, local_rank, True
@@ -244,7 +247,7 @@ class RenderFormerDataset(Dataset):
                 gt_images.append(torch.from_numpy(gt_img.astype(np.float32)))
             else:
                 if not dist.is_initialized() or dist.get_rank() == 0:
-                    print(f"Предупеждение: GT изображение не найдено: {gt_path}")
+                    print(f"Предупреждение: GT изображение не найдено: {gt_path}")
                 # Создаем пустое изображение как заглушку
                 gt_images.append(torch.zeros(self.max_resolution, self.max_resolution, 3, dtype=torch.float32))
         
@@ -287,8 +290,8 @@ class RenderFormerTrainer:
         if is_distributed:
             self.pipeline.model = DDP(
                 self.pipeline.model,
-                device_ids=[device.index],
-                output_device=device.index,
+                device_ids=[local_rank],
+                output_device=local_rank,
                 find_unused_parameters=config['distributed']['find_unused_parameters']
             )
         
@@ -296,11 +299,10 @@ class RenderFormerTrainer:
         self.pipeline.model.train()
         
         # Включаем gradient checkpointing если указано в конфиге
-        if config['training']['use_gradient_checkpointing'] and hasattr(self.pipeline.model, 'gradient_checkpointing_enable'):
-            if is_distributed:
-                self.pipeline.model.module.gradient_checkpointing_enable()
-            else:
-                self.pipeline.model.gradient_checkpointing_enable()
+        if config['training']['use_gradient_checkpointing']:
+            model_to_checkpoint = self.pipeline.model.module if is_distributed else self.pipeline.model
+            if hasattr(model_to_checkpoint, 'gradient_checkpointing_enable'):
+                model_to_checkpoint.gradient_checkpointing_enable()
         
         # Оптимизатор
         self.optimizer = optim.AdamW(
@@ -342,6 +344,10 @@ class RenderFormerTrainer:
         total_loss = 0.0
         num_batches = len(dataloader)
         successful_batches = 0
+        
+        # Устанавливаем эпоху для DistributedSampler
+        if self.is_distributed and hasattr(dataloader.sampler, 'set_epoch'):
+            dataloader.sampler.set_epoch(epoch)
         
         # Создаем прогресс-бар только на главном процессе
         if not self.is_distributed or self.local_rank == 0:
@@ -408,12 +414,7 @@ class RenderFormerTrainer:
                 # Обратный проход с gradient scaling
                 self.scaler.scale(loss).backward()
                 
-                # Синхронизируем градиенты между процессами
-                if self.is_distributed:
-                    for param in self.pipeline.model.parameters():
-                        if param.grad is not None:
-                            dist.all_reduce(param.grad.data, op=dist.ReduceOp.SUM)
-                            param.grad.data /= dist.get_world_size()
+                # DDP автоматически синхронизирует градиенты, не нужно делать это вручную
                 
                 # Проверяем градиенты
                 total_grad_norm = 0
@@ -500,7 +501,7 @@ class RenderFormerTrainer:
             self.writer.add_scalar('Successful_Batches/Train', successful_batches, epoch)
         
         if not self.is_distributed or self.local_rank == 0:
-            print(f"Успешно обработано батчей: {successful_batches}/{num_batches}")
+            print(f"Успешно обработано батчей: {successful_batches}/{num_batches * (dist.get_world_size() if self.is_distributed else 1)}")
         
         return avg_loss
     
@@ -578,7 +579,7 @@ class RenderFormerTrainer:
             self.writer.add_scalar('Successful_Batches/Validation', successful_batches, epoch)
         
         if not self.is_distributed or self.local_rank == 0:
-            print(f"Валидация: успешно обработано батчей: {successful_batches}/{num_batches}")
+            print(f"Валидация: успешно обработано батчей: {successful_batches}/{num_batches * (dist.get_world_size() if self.is_distributed else 1)}")
         
         return avg_loss
     
@@ -653,35 +654,43 @@ def setup_training(config, device, local_rank, is_distributed):
         max_resolution=config['data']['max_resolution']
     )
 
-    # Создаем сэмплер для распределенного обучения
-    if is_distributed:
-        sampler = DistributedSampler(
-            dataset,
-            num_replicas=dist.get_world_size(),
-            rank=local_rank,
-            shuffle=True
-        )
-    else:
-        sampler = None
-
     # Разделяем на train/val
     train_size = int(config['data']['train_val_split'] * len(dataset))
     val_size = len(dataset) - train_size
     train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
+
+    # Создаем сэмплеры для распределенного обучения
+    if is_distributed:
+        train_sampler = DistributedSampler(
+            train_dataset,
+            num_replicas=dist.get_world_size(),
+            rank=dist.get_rank(),
+            shuffle=True
+        )
+        val_sampler = DistributedSampler(
+            val_dataset,
+            num_replicas=dist.get_world_size(),
+            rank=dist.get_rank(),
+            shuffle=False
+        )
+    else:
+        train_sampler = None
+        val_sampler = None
     
     # Создаем DataLoader'ы
     train_loader = DataLoader(
         train_dataset, 
         batch_size=config['training']['batch_size'], 
-        shuffle=(sampler is None),
-        sampler=sampler,
+        shuffle=(train_sampler is None),
+        sampler=train_sampler,
         num_workers=config['data']['num_workers'], 
         pin_memory=config['data']['pin_memory']
     )
     val_loader = DataLoader(
         val_dataset, 
         batch_size=config['training']['batch_size'], 
-        shuffle=False, 
+        shuffle=False,
+        sampler=val_sampler,
         num_workers=config['data']['num_workers'], 
         pin_memory=config['data']['pin_memory']
     )
@@ -702,12 +711,9 @@ def train_model(config_path):
     
     if device is None:
         # Обычное обучение на одном GPU
-        if config['model']['device'] and len(config['model']['device']) > 0:
-            base_device = config['model']['device'][0]
-            device = torch.device(f"cuda:{base_device}")
-        else:
-            device = torch.device('cuda:0' if torch.cuda.is_available() else 
-                                 'mps' if torch.backends.mps.is_available() else 'cpu')
+        device = torch.device('cuda:0' if torch.cuda.is_available() else 
+                             'mps' if torch.backends.mps.is_available() else 'cpu')
+        local_rank = 0
     
     if not is_distributed or local_rank == 0:
         print(f"Используется устройство: {device}")
@@ -731,6 +737,7 @@ def train_model(config_path):
     trainer = RenderFormerTrainer(pipeline, config, device=device, local_rank=local_rank, is_distributed=is_distributed)
 
     # Создаем директорию для чекпоинтов
+    checkpoint_dir = None
     if not is_distributed or local_rank == 0:
         checkpoint_dir = Path(config['output']['checkpoint_dir'])
         checkpoint_dir.mkdir(exist_ok=True, parents=True)
@@ -758,15 +765,15 @@ def train_model(config_path):
             # Сохраняем лучшую модель
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
-                trainer.save_checkpoint(epoch, checkpoint_dir / "best_model.pth")
-                if not is_distributed or local_rank == 0:
+                if checkpoint_dir is not None:
+                    trainer.save_checkpoint(epoch, checkpoint_dir / "best_model.pth")
                     print(f"Новая лучшая модель сохранена! Val Loss: {val_loss:.6f}")
 
         # Обновляем планировщик
         trainer.scheduler.step()
 
         # Сохраняем чекпоинт с интервалом
-        if (epoch + 1) % config['output']['save_interval'] == 0:
+        if (epoch + 1) % config['output']['save_interval'] == 0 and checkpoint_dir is not None:
             trainer.save_checkpoint(epoch, checkpoint_dir / f"checkpoint_epoch_{epoch+1}.pth")
 
     # Строим график потерь
